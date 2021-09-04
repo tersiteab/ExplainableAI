@@ -11,80 +11,80 @@ import sklearn.datasets
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
-import torch, torchvision
-from torchvision import datasets, transforms
-from torch import nn, optim
-from torch.nn import functional as F
-from torchviz import make_dot
+# import torch, torchvision
+# from torchvision import datasets, transforms
+# from torch import nn, optim
+# from torch.nn import functional as F
+# from torchviz import make_dot
 import tensorflow as tf
 from tensorflow.keras.datasets import imdb
 tf.compat.v1.disable_v2_behavior()
 
 
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
+# class Net(nn.Module):
+#     def __init__(self):
+#         super(Net, self).__init__()
 
-        # Convolution Layers
-        self.conv_layers = nn.Sequential(
-            nn.Conv2d(1, 10, kernel_size=5),
-            nn.MaxPool2d(2),
-            nn.ReLU(),
-            nn.Conv2d(10, 20, kernel_size=5),
-            nn.Dropout(),
-            nn.MaxPool2d(2),
-            nn.ReLU(),
-        )
+#         # Convolution Layers
+#         self.conv_layers = nn.Sequential(
+#             nn.Conv2d(1, 10, kernel_size=5),
+#             nn.MaxPool2d(2),
+#             nn.ReLU(),
+#             nn.Conv2d(10, 20, kernel_size=5),
+#             nn.Dropout(),
+#             nn.MaxPool2d(2),
+#             nn.ReLU(),
+#         )
         
-        # 
-        self.fc_layers = nn.Sequential(
-            nn.Linear(320, 50),
-            nn.ReLU(),
-            nn.Dropout(),
-            nn.Linear(50, 10),
-            nn.Softmax(dim=1)
-        )
+#         # 
+#         self.fc_layers = nn.Sequential(
+#             nn.Linear(320, 50),
+#             nn.ReLU(),
+#             nn.Dropout(),
+#             nn.Linear(50, 10),
+#             nn.Softmax(dim=1)
+#         )
 
-    def forward(self, x):
-        x = self.conv_layers(x)
-        x = x.view(-1, 320)
-        x = self.fc_layers(x)
-        return x
-def train(model, device, train_loader, optimizer, epoch):
-    model.train()
-    for batch_idx, (data, target) in enumerate(train_loader):
-        data, target = data.to(device), target.to(device)
-        optimizer.zero_grad()
-        output = model(data)
-        loss = F.nll_loss(output.log(), target)
-        loss.backward()
-        optimizer.step()
-        if batch_idx % 100 == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.item()))
-def test(model, device, test_loader):
-    model.eval()
-    test_loss = 0
-    correct = 0
-    with torch.no_grad():
-        for data, target in test_loader:
-            data, target = data.to(device), target.to(device)
-            output = model(data)
+#     def forward(self, x):
+#         x = self.conv_layers(x)
+#         x = x.view(-1, 320)
+#         x = self.fc_layers(x)
+#         return x
+# def train(model, device, train_loader, optimizer, epoch):
+#     model.train()
+#     for batch_idx, (data, target) in enumerate(train_loader):
+#         data, target = data.to(device), target.to(device)
+#         optimizer.zero_grad()
+#         output = model(data)
+#         loss = F.nll_loss(output.log(), target)
+#         loss.backward()
+#         optimizer.step()
+#         if batch_idx % 100 == 0:
+#             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+#                 epoch, batch_idx * len(data), len(train_loader.dataset),
+#                 100. * batch_idx / len(train_loader), loss.item()))
+# def test(model, device, test_loader):
+#     model.eval()
+#     test_loss = 0
+#     correct = 0
+#     with torch.no_grad():
+#         for data, target in test_loader:
+#             data, target = data.to(device), target.to(device)
+#             output = model(data)
             
             
-            test_loss += F.nll_loss(output.log(),
-                                    target).item()  
+#             test_loss += F.nll_loss(output.log(),
+#                                     target).item()  
             
            
-            pred = output.max(1, keepdim=True)[1]  
-            correct += pred.eq(target.view_as(pred)).sum().item()
+#             pred = output.max(1, keepdim=True)[1]  
+#             correct += pred.eq(target.view_as(pred)).sum().item()
 
-    test_loss /= len(test_loader.dataset)
-    print(
-        '\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-            test_loss, correct, len(test_loader.dataset),
-            100. * correct / len(test_loader.dataset)))
+#     test_loss /= len(test_loader.dataset)
+#     print(
+#         '\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+#             test_loss, correct, len(test_loader.dataset),
+#             100. * correct / len(test_loader.dataset)))
     
 
 def loadDataset(dataset):
@@ -98,7 +98,7 @@ def loadDataset(dataset):
         X = boston_df.iloc[:,0:13]
         return X, y
     elif dataset == "superconductivity":
-        df = pd.read_csv("train.csv")
+        df = pd.read_csv("dataset/train.csv")
         y = df['critical_temp']
         X = df.drop('critical_temp',axis=1)
 
@@ -162,7 +162,7 @@ def RNN(x_train,y_train,x_test,y_test,words):
     print("Test accuracy: {}".format(test_acurracy))
     return imdb_model
 
-def CNN():
+# def CNN():
     model = Net()
     train_loader = torch.utils.data.DataLoader(datasets.MNIST(
         'mnist_data',
