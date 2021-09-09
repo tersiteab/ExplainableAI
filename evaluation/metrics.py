@@ -11,6 +11,12 @@ import matplotlib as plot
 import sklearn.metrics
 import sklearn.datasets
 from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as pp
+
+
+def plot(x):
+  pp.plot(x,'-o')
+  pp.show()
 
 def faithfulness_metric_reg(model, x, coefs, base):
     predt = model.predict(np.transpose(x.reshape(-1,1)))

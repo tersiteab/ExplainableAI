@@ -132,4 +132,46 @@ def Explanation_reg(explainer,model,X,X_ref,dataSetType,task):
                                          num_samples=1000)
         else:
             return None
+
+
+def Explanation_cls(explainer,model,X,X_ref):
+    
+    if explainer == "SHAP":
+        exp = shap.Explainer(model, X_ref)
+        shap_vals = exp(X)
+        base_val = shap_vals.base_values 
+        return shap_vals,base_val
+    elif explainer == "Kernel SHAP":
+        exp = shap.KernelExplainer(model, X_ref)
+        shap_vals = exp.shap_values(X)
+        expected_val = exp.expected_value
+        return shap_vals,expected_val
+    elif explainer == "Tree SHAP":
+        exp = shap.TreeExplainer(model,X_ref)
+        shap_vals = exp(X)
+        return shap_vals
+    elif explainer == "LIME":
+       
+        lime_exp = lime.lime_tabular.LimeTabularExplainer(
+            X,
+            mode='classification') 
+        exp_lime = []
+        for x in X:
+            ex = lime_exp.explain_instance(x, 
+                model, num_features=x.shape[0])
+            exp_lime.append(x)
+        return exp_lime
+    elif explainer == "LIME-SHAP":
+        exp_lime = []
         
+        lime_explainer_shap = shap.other.LimeTabular(model,X,mode = 'classification')
+        lime_attribs = lime_explainer_shap.attributions(X,num_features=X.shape[1])
+        return lime_attribs
+    else:
+        return None
+'''lime_exp = lime.lime_tabular.LimeTabularExplainer(
+    X_train_np,
+    feature_names=columns ,
+    class_names=['feature_names'], 
+    verbose=True, 
+    mode='regression')'''      
