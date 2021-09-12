@@ -50,14 +50,18 @@ def Explanation_reg(explainer,model,X,X_ref,dataSetType,task):
                 return exp_lime
             elif explainer == "LIME-SHAP":
                 exp_lime = []
-                X_np= X.to_numpy()
-                featureNames=X.columns
-                No_features = len(featureNames)
-                for x in X_np:
-                    lime_explainer_shap = shap.other.LimeTabular(model.predict,x,mode = 'regression')
-                    lime_attribs = lime_explainer_shap.attributions(x,num_features=No_features)
+                if type(X) == np.ndarray:
+                    X_np= X
+                else:
+                    X_np = X.to_numpy()
+        #         featureNames=X.columns
+                No_features = X.shape[1]
+                
+                lime_explainer_shap = shap.other.LimeTabular(model.predict,X_np,mode = 'regression')
+                lime_attribs = lime_explainer_shap.attributions(X_np,num_features=No_features)
+                return lime_attribs
             else:
-                return None
+                    return None
         else:
             return None
     elif task == "Classification":
@@ -123,13 +127,13 @@ def Explanation_reg(explainer,model,X,X_ref,dataSetType,task):
                 test_images = X[100:100+n_test_images]
                 shap_values = e.shap_values(test_images)
                 return e,shap_values
-            elif explainer == "LIME":
-                expl = lime_image.LimeImageExplainer()
-                explanation = expl.explain_instance(np.array(pill_transf(img)), 
-                                         batch_predict, # classification function
-                                         top_labels=5, 
-                                         hide_color=0, 
-                                         num_samples=1000)
+            # elif explainer == "LIME":
+            #     expl = lime_image.LimeImageExplainer()
+            #     explanation = expl.explain_instance(np.array(pill_transf(img)), 
+            #                              batch_predict, # classification function
+            #                              top_labels=5, 
+            #                              hide_color=0, 
+            #                              num_samples=1000)
         else:
             return None
 

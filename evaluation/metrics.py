@@ -107,20 +107,32 @@ def monotonicity_metric_reg(model, x, coefs, base):
         else:
             final_.append(False)
     return any(final_)
-
-def monotonicity_metric_cls(model, x, coef, base):
-    pred_class = np.argmax(model.predict_proba(np.transpose(x.reshape(1,-1))), axis=1)[0]
+def monotonicity_metric_cls(model, x, coefs, base):
+    pred_class = np.argmax(model.predict_proba(x.reshape(1,-1)), axis=1)[0]
     x_copy = base.copy()
-
     #find indexs of coefficients in increasing order of value
-    ar = np.argsort(coef)
+    ar = np.argsort(coefs)
+#     print(coefs)
+    isPos = [False for i in range(len(ar))]
     pred_probs = np.zeros(x.shape[0])
     for ind in np.nditer(ar):
+        if coefs[ind]<0:
+            isPos[ind] = False
+        else:
+            isPos[ind] = True
         x_copy[ind] = x[ind]
-        x_copy_pr = model.predict_proba(np.transpose(x_copy.reshape(1,-1)))
+        x_copy_pr = model.predict_proba(x_copy.reshape(1,-1))
         pred_probs[ind] = x_copy_pr[0][pred_class]
-
-    return np.all(np.diff(pred_probs[ar]) >= 0)
+    diff = np.diff(pred_probs[ar])
+    final_ = []
+    for i in range(len(diff)):
+        if isPos[i] == False and diff[i] < 0:
+            final_.append(True)
+        elif isPos[i] == True and diff[i] >=0:
+            final_.append(True)
+        else:
+            final_.append(False)
+    return any(final_)
 
 def metrics_reg(model,X,shap_val,explainer_type,metrics_type,dataset):
     cols = X.columns
@@ -137,16 +149,22 @@ def metrics_reg(model,X,shap_val,explainer_type,metrics_type,dataset):
         if explainer_type == "shap":
             for i in range(X.shape[0]):
                 x = np.array(X.iloc[i,:])
-                # print(shap_val[i])
-                coefs = shap_val[i].values
+                if type(shap_val) == np.ndarray:
+                    coefs = shap_val[i]
+                else:# print(shap_val[i])
+                    coefs = shap_val[i].values
+                # coefs = shap_val[i].values
                 f = faithfulness_metric_new_reg(model, x, coefs, base)
                 # print(f)
                 faithfulness.append(f)
         elif explainer_type == "kernel shap":
             for i in range(X.shape[0]):
                 x = np.array(X.iloc[i,:])
-                # print(shap_val[i])
-                coefs = shap_val[i].values
+                if type(shap_val) == np.ndarray:
+                    coefs = shap_val[i]
+                else:# print(shap_val[i])
+                    coefs = shap_val[i].values 
+                # coefs = shap_val[i].values
                 f = faithfulness_metric_new_reg(model, x, coefs, base)
                 # print(f)
                 faithfulness.append(f)
@@ -184,9 +202,10 @@ def metrics_cls(model,X,shap_val,explainer_type,metrics_type,dataset):
         if explainer_type == "shap":
             for i in range(X.shape[0]):
                 x = X[i,:]
-                
-                # print(shap_val[i])
-                coefs = shap_val[i].values
+                if type(shap_val) == np.ndarray:
+                    coefs = shap_val[i]
+                else:# print(shap_val[i])
+                    coefs = shap_val[i].values
                 f = faithfulness_metrics_cls(model, x, coefs, base)
                 # print(f)
                 faithfulness.append(f)
@@ -212,13 +231,62 @@ def metrics_cls(model,X,shap_val,explainer_type,metrics_type,dataset):
         if explainer_type == "shap":
             for i in range(X.shape[0]):
                 x = X[i,:]
-                coefs = shap_val.values[i]
+                if type(shap_val) == np.ndarray:
+                    coefs = shap_val[i]
+                else:# print(shap_val[i])
+                    coefs = shap_val[i].values
+                # coefs = shap_val.values[i]
                 f = monotonicity_metric_cls(model, x, coefs, base)
                 monotonicity.append(f)
         elif explainer_type == "lime":
             for i in range(X.shape[0]):
                 x = X[i,:]
-                coefs = shap_val[i]
+                if type(shap_val) == np.ndarray:
+                    coefs = shap_val[i]
+                else:# print(shap_val[i])
+                    coefs = shap_val[i].values
+                # coefs = shap_val[i]
                 f = monotonicity_metric_cls(model, x, coefs, base)
                 monotonicity.append(f)
         return monotonicity
+def fai_cls_forText(model,x,coefs,base):
+    pred_class = np.argmax(model.predict(x.reshape(1,-1)), axis=1)[0]
+    ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
+    pred_probs = np.zeros(x.shape[0])
+    for ind in np.nditer(ar):
+        x_copy = x.copy()
+        x_copy[ind] = base[ind]
+        x_copy_pr = model.predict(x_copy.reshape(1,-1))
+        pred_probs[ind] = x_copy_pr[0][pred_class]
+        # print(pred_probs)
+        # print(pred_class)
+
+    return -np.corrcoef(coefs, pred_probs)[0,1]
+
+def monotonicity_metric_txt(model, x, coefs, base):
+    pred_class = np.argmax(model.predict(x.reshape(1,-1)), axis=1)[0]
+
+    x_copy = base.copy()
+    ar = np.argsort(coefs)
+    isPos = [False for i in range(len(ar))]
+    pred_tss = np.zeros(x.shape[0])
+    
+    for ind in np.nditer(ar):
+        if coefs[ind]<0:
+            isPos[ind] = False
+        else:
+            isPos[ind] = True
+        x_copy[ind] = x[ind]
+        x_copy_pr = model.predict(x_copy.reshape(1,-1))
+        pred_tss[ind] = x_copy_pr
+    diff = np.diff(pred_tss[ar])
+    final_ = []
+    for i in range(len(diff)):
+        if isPos[i] == False and diff[i] < 0:
+            final_.append(True)
+        elif isPos[i] == True and diff[i] >=0:
+            final_.append(True)
+        else:
+            final_.append(False)
+    return any(final_)
+    

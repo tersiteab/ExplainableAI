@@ -98,7 +98,7 @@ def loadDataset(dataset):
         X = boston_df.iloc[:,0:13]
         return X, y
     elif dataset == "superconductivity":
-        df = pd.read_csv("dataset/train.csv")
+        df = pd.read_csv("/home/teadem/ExplainableAI/datasets/train.csv")
         y = df['critical_temp']
         X = df.drop('critical_temp',axis=1)
 
@@ -156,7 +156,8 @@ def RNN(x_train,y_train,x_test,y_test,words):
     # Output Layer
     imdb_model.add(tf.keras.layers.Dense(units=1, activation='sigmoid'))
     print(imdb_model.summary())
-
+    imdb_model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
+    
     imdb_model.fit(x_train, y_train, epochs=5, batch_size=128)
     test_loss, test_acurracy = imdb_model.evaluate(x_test, y_test)
     print("Test accuracy: {}".format(test_acurracy))
@@ -194,7 +195,7 @@ def train_model(model, X,y):
         rf_r.fit(X,y)
         return rf_r
     elif model == "SVR":
-        svr = SVR()
+        svr = SVR(kernel = "rbf")
         svr.fit(X,y)
         return svr
     elif model == "RNN":
