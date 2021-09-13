@@ -53,7 +53,44 @@ def faithfulness_metric_new_reg(model, x, coefs, base):
         pred_ts[ind] = x_copy_ts - predt
     
     return -np.corrcoef(coefs, pred_ts)[0,1]
+def faithfulness_metrics_cls1(model,x,coefs,base):
+#     pred_class = np.argmax(model.predict_proba(np.transpose(x.reshape(-1,1))), axis=1)[0]
+#     pred_prob_og = model.predict_proba(np.transpose(x.reshape(-1,1)))
+#     ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
+#     pred_probs = np.zeros(x.shape[0])
+#     diff = []
+#     for ind in np.nditer(ar):
+#         x_copy = x.copy()
+#         x_copy[ind] = base[ind]
+        
+#         x_copy_pr = model.predict_proba(x_copy.reshape(1,-1))
+#         pred_probs[ind] = x_copy_pr[0][pred_class]
+#         # print(pred_probs)
+#         # print(pred_class)
 
+#     return -np.corrcoef(coefs, pred_probs-pred_prob_og)[0,1]
+    pred_class = np.argmax(model.predict_proba(x.reshape(1,-1)), axis=1)[0]
+    p = np.amax(model.predict_proba(x.reshape(1,-1)))
+#     print("og pred",p)
+    #find indexs of coefficients in decreasing order of value
+    ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
+    pred_probs = np.zeros(x.shape[0])
+    isPos = [-1 for i in range(len(ar))]
+    diff = np.zeros(x.shape[0])
+    for ind in np.nditer(ar):
+        if coefs[ind]<0:
+            isPos[ind] = -1
+        else:
+            isPos[ind] = 1
+        x_copy = x.copy()
+        x_copy[ind] = base[ind]
+        x_copy_pr = model.predict_proba(x_copy.reshape(1,-1))
+        pred_probs[ind] = x_copy_pr[0][pred_class]
+#         print(pred_probs)
+        diff[ind]=p - pred_probs[ind]
+#     print(coefs, np.array(diff))
+
+    return -np.corrcoef(coefs, -np.array(isPos)*np.array(diff))[0,1]
 def faithfulness_metrics_cls(model,x,coefs,base):
     pred_class = np.argmax(model.predict_proba(np.transpose(x.reshape(-1,1))), axis=1)[0]
     ar = np.argsort(-coefs)  #argsort returns indexes of values sorted in increasing order; so do it for negated array
@@ -206,7 +243,7 @@ def metrics_cls(model,X,shap_val,explainer_type,metrics_type,dataset):
                     coefs = shap_val[i]
                 else:# print(shap_val[i])
                     coefs = shap_val[i].values
-                f = faithfulness_metrics_cls(model, x, coefs, base)
+                f = faithfulness_metrics_cls1(model, x, coefs, base)
                 # print(f)
                 faithfulness.append(f)
         elif explainer_type == "kernel shap":
@@ -214,14 +251,14 @@ def metrics_cls(model,X,shap_val,explainer_type,metrics_type,dataset):
                 x = X[i,:]
                 # print(shap_val[i])
                 coefs = shap_val[i]
-                f = faithfulness_metrics_cls(model, x, coefs, base)
+                f = faithfulness_metrics_cls1(model, x, coefs, base)
                 # print(f)
                 faithfulness.append(f)
         elif explainer_type == "lime":
             for i in range(X.shape[0]):
                 x = X[i,:]
                 coefs = shap_val[i]
-                f = faithfulness_metrics_cls(model, x, coefs, base)
+                f = faithfulness_metrics_cls1(model, x, coefs, base)
                 # print(f)
                 faithfulness.append(f)
         plot(faithfulness)

@@ -53,7 +53,7 @@ explainer = shap.DeepExplainer(imdb_model, x_train[:100])
 
 # explain the first 10 predictions
 # explaining each prediction requires 2 * background dataset size runs
-shap_values = explainer.shap_values(x_test[:20])
+shap_values = explainer.shap_values(x_test[:50])
 
 # init the JS visualization code
 shap.initjs()

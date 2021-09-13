@@ -113,6 +113,7 @@ def Main_reg(dataset):
 
 
 def Main_cls(dataset):
+    print(dataset)
     if dataset == "wine":
         X,y,target_names,feature_names = loadDataset(dataset)
     else:
@@ -149,33 +150,33 @@ def Main_cls(dataset):
     
     print("--------------------------------------------------------------")
     print("Building Explanation ...")
-    LR_shap,LR_baseVal = Explanation_cls("SHAP",predict_fnLR,X_test[:50,],X100)
-    LR_shap_k,LR_expected_val_k = Explanation_cls("Kernel SHAP",predict_fnLR,X_test[:50,],X100_)
-    LR_lime1 = Explanation_cls("LIME",LR_model.predict_proba,X_test,X100)
+    LR_shap,LR_baseVal = Explanation_cls("SHAP",predict_fnLR,X_test[:10,],X100)
+    LR_shap_k,LR_expected_val_k = Explanation_cls("Kernel SHAP",predict_fnLR,X_test[:10,],X100_)
+    LR_lime1 = Explanation_cls("LIME",LR_model.predict_proba,X_test[:10],X100)
     
-    RF_shap, RF_baseVal = Explanation_cls("SHAP",predict_fnRF,X_test[:50,],X100)
-    RF_shap_k,RF_expected_val_k = Explanation_cls("Kernel SHAP",predict_fnRF,X_test[:50,],X100_)
-    RF_lime1 = Explanation_cls("LIME",RF_model.predict_proba,X_test[:50,],X100)
+    RF_shap, RF_baseVal = Explanation_cls("SHAP",predict_fnRF,X_test[:10,],X100)
+    RF_shap_k,RF_expected_val_k = Explanation_cls("Kernel SHAP",predict_fnRF,X_test[:10,],X100_)
+    RF_lime1 = Explanation_cls("LIME",RF_model.predict_proba,X_test[:10,],X100)
     
-    SVC_shap, SVC_baseVal = Explanation_cls("SHAP",predict_fnSVC,X_testS[:50,],X100)
-    SVC_shap_k,SVC_expected_val_k = Explanation_cls("Kernel SHAP",predict_fnSVC,X_testS[:50,],X100_)
-    SVC_lime1 = Explanation_cls("LIME",SVC_model.predict_proba,X_testS[:50,],X100)
+    SVC_shap, SVC_baseVal = Explanation_cls("SHAP",predict_fnSVC,X_testS[:10,],X100)
+    SVC_shap_k,SVC_expected_val_k = Explanation_cls("Kernel SHAP",predict_fnSVC,X_testS[:10,],X100_)
+    SVC_lime1 = Explanation_cls("LIME",SVC_model.predict_proba,X_testS[:10,],X100)
     
     print("Done building Explanation")
     ################### evaluation#####################
     
     #faithfulness
-    faithfulness_LR_shap= metrics_cls(model=LR_model,X=X_test[:50,],shap_val=LR_shap,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
+    faithfulness_LR_shap= metrics_cls(model=LR_model,X=X_test[:10,],shap_val=LR_shap,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for shap Logistic reg:",np.mean(np.array(faithfulness_LR_shap)))
-    faithfulness_LR_shap_k = metrics_cls(model=LR_model,X=X_test[:50,],shap_val=LR_shap_k,explainer_type="kernel shap",metrics_type="faithfulness",dataset=dataset)
+    faithfulness_LR_shap_k = metrics_cls(model=LR_model,X=X_test[:10,],shap_val=LR_shap_k,explainer_type="kernel shap",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for kernel shap Logistic reg:",np.mean(np.array(faithfulness_LR_shap_k)))
-    faithfulness_LR_lime = metrics_cls(model=LR_model,X=X_test[:50,],shap_val=LR_lime1,explainer_type="lime",metrics_type="faithfulness",dataset=dataset)
+    faithfulness_LR_lime = metrics_cls(model=LR_model,X=X_test[:10,],shap_val=LR_lime1,explainer_type="lime",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for lime Logistic Reg:",np.mean(np.array(faithfulness_LR_lime)))
-    faithfulness_RF_shap = metrics_cls(model=RF_model,X=X_test[:50,],shap_val=RF_shap,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
+    faithfulness_RF_shap = metrics_cls(model=RF_model,X=X_test[:10,],shap_val=RF_shap,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for shap RF Classification:",np.mean(np.array(faithfulness_RF_shap)))
-    faithfulness_RF_shap_k = metrics_cls(model=RF_model,X=X_test[:50,],shap_val=RF_shap_k,explainer_type="kernel shap",metrics_type="faithfulness",dataset=dataset)
+    faithfulness_RF_shap_k = metrics_cls(model=RF_model,X=X_test[:10,],shap_val=RF_shap_k,explainer_type="kernel shap",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for kernel shap RF Classification:",np.mean(np.array(faithfulness_RF_shap_k)))
-    faithfulness_RF_lime = metrics_cls(model=LR_model,X=X_test[:50,],shap_val=RF_lime1,explainer_type="lime",metrics_type="faithfulness",dataset=dataset)
+    faithfulness_RF_lime = metrics_cls(model=LR_model,X=X_test[:10,],shap_val=RF_lime1,explainer_type="lime",metrics_type="faithfulness",dataset=dataset)
     print("Mean Faithfulness for lime RF Classification:",np.mean(np.array(faithfulness_RF_lime)))
     #TODO svc DONE
     # bit of modification to pass attribution val of the predicted class
@@ -183,34 +184,36 @@ def Main_cls(dataset):
     x = X_testS[:10,]
     s=SVC_shap.values[:10,]
     o = []
-    for i in range(x.shape[0]):
-        p = pred_class1[i]
-        o.append(s[i,:,p])
-    o_ = np.array(o)
-    faithfulness_SVC_shap= metrics_cls(model=SVC_model,X=X_testS[:10,],shap_val=o_,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
-    print("Mean Faithfulness for lime RF Classification:",np.mean(np.array(faithfulness_SVC_shap)))
+    # for i in range(x.shape[0]):
+    #     p = pred_class1[i]
+    #     o.append(s[i,:,p])
+    # o_ = np.array(o)
+    # faithfulness_SVC_shap= metrics_cls(model=SVC_model,X=X_testS[:10,],shap_val=o_,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
+    # print("Mean Faithfulness for SHAP SVM Classification:",np.mean(np.array(faithfulness_SVC_shap)))
     #kernel shap
-    pred_class = np.argmax(SVC_model.predict_proba(X_testS[:10,]), axis=1)
-    x = X_testS[:10,]
-    sk=np.array(SVC_shap_k)[:10,]
-    ok = []
-    for i in range(x.shape[0]):
-        p = pred_class[i]
-        ok.append(sk[p,i,:])
-    o_k= np.array(ok)
-    faithfulness_SVC_k_shap= metrics_cls(model=SVC_model,X=X_testS[:10,],shap_val=o_k,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
-    print("Mean Faithfulness for lime RF Classification:",np.mean(np.array(faithfulness_SVC_k_shap)))
+    # pred_class = np.argmax(SVC_model.predict_proba(X_testS[:10,]), axis=1)
+    # x = X_testS[:10,]
+    # sk=np.array(SVC_shap_k)[:10,]
+    # ok = []
+    # for i in range(x.shape[0]):
+    #     p = pred_class[i]
+    #     ok.append(sk[p,i,:])
+    # o_k= np.array(ok)
+    # faithfulness_SVC_k_shap= metrics_cls(model=SVC_model,X=X_testS[:10,],shap_val=o_k,explainer_type="shap",metrics_type="faithfulness",dataset=dataset)
+    # print("Mean Faithfulness for kernel SHAP SVM Classification:",np.mean(np.array(faithfulness_SVC_k_shap)))
     #LIME
     faithfulness_SVC_lime= metrics_cls(model=SVC_model,X=X_testS[:10,],shap_val=np.array(SVC_lime1),explainer_type="lime",metrics_type="faithfulness",dataset=dataset)
-    print("Mean Faithfulness for lime RF Classification:",np.mean(np.array(faithfulness_SVC_lime)))
+    print("Mean Faithfulness for lime SVM Classification:",np.mean(np.array(faithfulness_SVC_lime)))
     monotonicity_LR_shap = metrics_cls(model=LR_model,X=X_test[:10,],shap_val=LR_shap,explainer_type="shap",metrics_type="monotonicity",dataset=dataset)
     monotonicity_LR_shap_k = metrics_cls(model=LR_model,X=X_test[:10,],shap_val=LR_shap_k ,explainer_type="shap",metrics_type="monotonicity",dataset=dataset)
-    monotonicity_LR_lime = metrics_cls(model=LR_model,X=X_test[:10,],shap_val=LR_lime1,explainer_type="lime",metrics_type="monotonicity",dataset=dataset)
+
+    print(type(LR_lime1))
+    monotonicity_LR_lime = metrics_cls(model=LR_model,X=X_test[:10,],shap_val=np.array(LR_lime1),explainer_type="lime",metrics_type="monotonicity",dataset=dataset)
     monotonicity_RF_shap = metrics_cls(model=RF_model,X=X_test[:10,],shap_val=RF_shap,explainer_type="shap",metrics_type="monotonicity",dataset=dataset)
     monotonicity_RF_shap_k = metrics_cls(model=RF_model,X=X_test[:10,],shap_val=RF_shap_k,explainer_type="shap",metrics_type="monotonicity",dataset=dataset)
-    monotonicity_RF_lime = metrics_cls(model=RF_model,X=X_test[:10,],shap_val=RF_lime1,explainer_type="lime",metrics_type="monotonicity",dataset=dataset)
+    monotonicity_RF_lime = metrics_cls(model=RF_model,X=X_test[:10,],shap_val=np.array(RF_lime1),explainer_type="lime",metrics_type="monotonicity",dataset=dataset)
 
-    monotonicity_SVC_lime = metrics_cls(model=SVC_model,X=X_testS[:10,],shap_val=SVC_lime1,explainer_type="lime",metrics_type="monotonicity",dataset=dataset)
+    monotonicity_SVC_lime = metrics_cls(model=SVC_model,X=X_testS[:10,],shap_val=np.array(SVC_lime1),explainer_type="lime",metrics_type="monotonicity",dataset=dataset)
     pred_class1 = np.argmax(SVC_model.predict_proba(X_testS[:10,]), axis=1)
     x = X_testS[:10,]
     s=SVC_shap.values[:10,]
@@ -234,15 +237,15 @@ def Main_cls(dataset):
 
     monotonicity_SVC_shap = metrics_cls(model=SVC_model,X=X_testS[:10,],shap_val=o_,explainer_type="shap",metrics_type="monotonicity",dataset=dataset)
     monotonicity_SVC_shap_k = metrics_cls(model=SVC_model,X=X_testS[:10,],shap_val=o_k,explainer_type="shap",metrics_type="monotonicity",dataset=dataset)
-    print("monotonicity in form of boolean for :",monotonicity_LR_shap)
-    print("monotonicity in form of boolean for :",monotonicity_LR_shap_k)
-    print("monotonicity in form of boolean for :",monotonicity_LR_lime)
-    print("monotonicity in form of boolean for :",monotonicity_RF_shap)
-    print("monotonicity in form of boolean for :",monotonicity_RF_shap_k)
-    print("monotonicity in form of boolean for :",monotonicity_RF_lime)
-    print("monotonicity in form of boolean for :",monotonicity_SVC_shap)
-    print("monotonicity in form of boolean for :",monotonicity_SVC_shap_k)
-    print("monotonicity in form of boolean for :",monotonicity_SVC_lime)
+    print("monotonicity in form of boolean for LR_shap:",monotonicity_LR_shap)
+    print("monotonicity in form of boolean for LR_shap_k:",monotonicity_LR_shap_k)
+    print("monotonicity in form of boolean for LR_lime:",monotonicity_LR_lime)
+    print("monotonicity in form of boolean for RF_shap:",monotonicity_RF_shap)
+    print("monotonicity in form of boolean for RF_shap_k:",monotonicity_RF_shap_k)
+    print("monotonicity in form of boolean for RF_lime:",monotonicity_RF_lime)
+    print("monotonicity in form of boolean for SVC_shap:",monotonicity_SVC_shap)
+    print("monotonicity in form of boolean for SVC_shap_k:",monotonicity_SVC_shap_k)
+    print("monotonicity in form of boolean for SVC_lime:",monotonicity_SVC_lime)
 
 def Main_text():
     X,y = loadDataset("imdb")
@@ -295,19 +298,22 @@ def Main_text():
         m.append(monotonicity_metric_txt(model,x,coefs,base))
     print(any(np.array(m)))
 
-dataset1_cls = "wine"
-dataset2_cls = "breast cancer"
-Main_cls(dataset1_cls)
-Main_cls(dataset2_cls) 
+# dataset1_cls = "wine"
+# dataset2_cls = "breast cancer"
+# Main_cls(dataset1_cls)
+# Main_cls(dataset2_cls) 
 
-dataset1_reg = "boston"
-dataset2_reg = "superconductivity"
-dataset3_reg = "diabetes"
+# dataset1_reg = "boston"
+# dataset2_reg = "superconductivity"
+# dataset3_reg = "diabetes"
 
-Main_reg(dataset1_reg)
-Main_reg(dataset2_reg)
-Main_reg(dataset3_reg)
+# Main_reg(dataset1_reg)
+# Main_reg(dataset2_reg)
+# Main_reg(dataset3_reg)
 
 # Main_text()
 
-
+for i in range(10):
+    dataset2_cls = "breast cancer"
+# Main_cls(dataset1_cls)
+    Main_cls(dataset2_cls)   
